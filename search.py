@@ -25,7 +25,7 @@ class DISTRICT(Enum):
     daan = '大安區'
     wanhua = '萬華區'
     xinyi = '信義區'
-    shilin = '信義區'
+    shilin = '士林區'
     beitou = '北投區'
     neihu = '內湖區'
     nangang = '南港區'
