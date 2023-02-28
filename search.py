@@ -70,9 +70,12 @@ def search_coupon(coupon: COUPON_TYPE, district: DISTRICT):
             id = s.get('id', None)
             name = s.get('name', None)
             if id and name:
+                detail = get_shop_detail(id)
                 result.append({
                     'id': id, 
                     'name': name,
+                    'description': detail['description'],
+                    'address': detail['address'],
                 })
 
         if resp.json().get('totalPages', page) <= page:
@@ -106,9 +109,42 @@ def search_coupon(coupon: COUPON_TYPE, district: DISTRICT):
     '''
 
 
+def get_shop_detail(id: str):
+    url = f'{BASE_URL}:5003/api/WebStore/{id}'
+    resp = session.get(url)
+    if resp.status_code != 200:
+        raise ConnectionError(f'status code: {resp.status_code}')
+
+    return {
+        'id': resp.json().get('id', ''),
+        'name': resp.json().get('name', ''),
+        'description': resp.json().get(
+            'description', '').replace('\r\n', ' ').replace('\n', ' '),
+        'address': resp.json().get('address', ''),
+    }
+    '''
+    sample resp:
+    {
+        "id": "001211a0-744f-4115-a0f1-671edc466e92",
+        "name": "遠東SOGO復興館-DEVIN",
+        "district": "大安區",
+        "description": "休閒服飾",
+        "categories": [
+            {
+            "id": 63,
+            "ads": ""
+            }
+        ],
+        "address": "臺北市大安區忠孝東路3段300號7F",
+        "logoImageURL": "https://taipeipass-jrsys.cdn.hinet.net/images/725e5356-846c-4632-a279-c5f31ef9f55a",
+        "bannerImageURL": null,
+        "earlyBird": null
+    }
+    '''
+
 def save(type: COUPON_TYPE, district: DISTRICT, shops: List):
     print('save csv...')
-    title = ['ID', '行政區', '地址', '店名']
+    title = ['ID', '行政區', '地址', '店名', '店家說明']
     if not os.path.exists(type.name):
         os.makedirs(type.name)
     with open(f'{type.name}/{district.value}.csv', 'w', encoding='utf-8', newline='') as f:
@@ -118,8 +154,9 @@ def save(type: COUPON_TYPE, district: DISTRICT, shops: List):
             writer.writerow([
                 shop['id'], 
                 district.value, 
-                f'台北市{district.value}{shop["name"]}',
-                shop['name']
+                shop['address'],
+                shop['name'],
+                shop['description'],
             ])
 
 
